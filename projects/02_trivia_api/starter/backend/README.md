@@ -81,23 +81,186 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 ```
 This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
-Endpoints
-GET '/api/v1.0/categories'
-GET ...
-POST ...
-DELETE ...
+### Getting Started
+- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration. 
+- Authentication: This version of the application does not require authentication or API keys. 
 
-GET '/api/v1.0/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+### Error Handling
+Errors are returned as JSON objects in the following format:
+```
+{
+    "success": False, 
+    "error": 400,
+    "message": "bad request"
+}
+```
+The API will return three error types when requests fail:
+- 400: Bad Request
+- 404: Resource Not Found
+- 422: Not Processable 
 
+### Endpoints 
+#### GET /categories
+- General:
+    - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+    - Request Arguments: None
+    - Returns: An object with a single key, categories, that contains an object of id: category_string key:value pairs. 
+
+- Sample: `curl http://127.0.0.1:5000/categories`
+``` 
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "status": 200, 
+  "success": true
+}
+```
+
+#### GET /questions?page=${integer}
+- General:
+    - Fetches a paginated set of questions, a total number of questions, all categories and current category string. 
+    - Request Arguments: page - integer
+    - Returns: An object with 10 paginated questions, total questions, object including all categories, and current category string
+
+- Sample: `curl -X GET "http://127.0.0.1:5000/questions?page=1"`
+``` 
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "currentCategory": null, 
+  "questions": [
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, ...], 
+  "status": 200, 
+  "success": true, 
+  "totalQuestions": 20
+}
+```
+
+#### GET /categories/${id}/questions
+- General:
+    - Fetches questions for a cateogry specified by id request argument 
+    - Request Arguments: id - integer
+    - Returns: An object with questions for the specified category, total questions, and current category string
+
+- Sample: `curl -X GET "http://127.0.0.1:5000/categories/1/questions"`
+```
+{
+  "current_category": 1, 
+  "questions": [
+    {
+      "answer": "The Liver", 
+      "category": 1, 
+      "difficulty": 4, 
+      "id": 20, 
+      "question": "What is the heaviest organ in the human body?"
+    }, ...], 
+  "status": 200, 
+  "success": true, 
+  "total_questions": 3
+}
+```
+
+#### DELETE /questions/${id}
+- General:
+    - Deletes a specified question using the id of the question
+    - Request Arguments: id - integer
+    - Returns: return the id of the deleted question
+
+- Sample: `curl -X DELETE "http://127.0.0.1:5000/questions/6"`
+```
+{
+  "deleted": 6, 
+  "status": 200, 
+  "success": true
+}
+```
+
+#### POST '/quizzes'
+- General:
+    - Sends a post request in order to get the next question 
+    - Request Body: 
+    {'previous_questions':  an array of question id's such as [1, 4, 20, 15]
+    'quiz_category': a string of the current category }
+    - Returns: a single new question object 
+
+- Sample: `curl -X POST "http://127.0.0.1:5000/quizzes" -d "{\"quiz_category\":{\"type\": \"History\", \"id\": \"4\"},\"previous_questions\":[2]}" -H "Content-Type: application/json"`
+```
+{
+  "question": {
+    "answer": "Maya Angelou", 
+    "category": 4, 
+    "difficulty": 2, 
+    "id": 5, 
+    "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+  }, 
+  "status": 200, 
+  "success": true
+}
+```
+
+### POST /questions
+- General:
+    - Sends a post request in order to add a new question
+    - Request Body: 
+    {
+    'question':  'Heres a new question string',
+    'answer':  'Heres a new answer string',
+    'difficulty': 1,
+    'category': 3,
+    }
+    - Returns: Does not return any new data
+
+- Sample: `curl -X POST "http://127.0.0.1:5000/questions" -d "{\"question\":\"Heres a new question string\",
+\"answer\":\"Heres a new answer string\", \"difficulty\":1, \"category\":3}" -H "Content-Type: application/json"`
+```
+{
+  "status": 200, 
+  "success": true
+}
+```
+
+
+### POST /questions
+- General:
+    - Sends a post request in order to search for a specific question by search term 
+    - Request Body: 
+    {'searchTerm': 'this is the term the user is looking for'}   
+    - Returns: any array of questions, a number of totalQuestions that met the search term and the current category string 
+
+- Sample: `curl -X POST "http://127.0.0.1:5000/questions/search" -d "{\"searchTerm\":\"china\"}" -H "Content-Type: application/json"`
+```
+{
+  "questions": [
+    {
+      "answer": "Bei Jing", 
+      "category": 3, 
+      "difficulty": 1, 
+      "id": 24, 
+      "question": "what is the name of capital city in china?"
+    }
+  ], 
+  "status": 200, 
+  "success": true, 
+  "total_questions": 1
+}
 ```
 
 
